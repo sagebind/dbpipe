@@ -19,4 +19,5 @@ features = ["macros", "rt"]
 
 [dependencies.sqlx]
 version = "0.5"
+default-features = false
 features = ["any", "mysql", "runtime-tokio-rustls"]
