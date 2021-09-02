@@ -13,15 +13,15 @@ mod csv;
 #[derive(StructOpt)]
 struct Options {
     /// Connection URL of the database
-    #[structopt(long, env = "QPIPE_DB")]
+    #[structopt(long, env = "DBPIPE_DB")]
     db: Url,
 
     /// Database user name
-    #[structopt(short, long, env = "QPIPE_USER")]
+    #[structopt(short, long, env = "DBPIPE_USER")]
     user: Option<String>,
 
     /// Database password
-    #[structopt(short, long, env = "QPIPE_PASSWORD")]
+    #[structopt(short, long, env = "DBPIPE_PASSWORD")]
     password: Option<String>,
 
     /// Execute an UPDATE or DELETE query
