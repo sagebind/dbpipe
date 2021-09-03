@@ -9,6 +9,7 @@ use tokio_stream::StreamExt;
 use url::Url;
 
 mod csv;
+mod json;
 
 #[derive(StructOpt)]
 struct Options {
@@ -27,6 +28,10 @@ struct Options {
     /// Execute an UPDATE or DELETE query
     #[structopt(short, long)]
     execute: bool,
+
+    /// Write each matching row in JSON format separated by newlines
+    #[structopt(short, long)]
+    json: bool,
 
     /// Don't print CSV headers
     #[structopt(long)]
@@ -79,7 +84,12 @@ async fn main() -> anyhow::Result<()> {
 
     let stdout = io::stdout();
     let stdout = stdout.lock();
-    let mut writer = csv::CsvWriter::new(stdout, !options.no_header);
+
+    let mut writer: Box<dyn RowWriter> = if options.json {
+        Box::new(json::JsonWriter::new(stdout))
+    } else {
+        Box::new(csv::CsvWriter::new(stdout, !options.no_header))
+    };
 
     while let Some(result) = stream.next().await {
         let row = result?;

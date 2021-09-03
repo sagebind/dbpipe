@@ -2,6 +2,8 @@
 
 Command-line SQL client for piping data in and out of a database.
 
+Rows can be piped out in CSV or JSON format.
+
 ```sh
 dbpipe select column1, column2 from table1 where column3 = 42
 ```
