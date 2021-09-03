@@ -79,21 +79,27 @@ async fn main() -> anyhow::Result<()> {
     log::info!("Connecting to {}", options.db.host_str().unwrap());
 
     let mut connection = AnyConnection::connect(options.db.as_str()).await?;
+    let query = sqlx::query(query.as_str());
 
-    let mut stream = sqlx::query(query.as_str()).fetch(&mut connection);
-
-    let stdout = io::stdout();
-    let stdout = stdout.lock();
-
-    let mut writer: Box<dyn RowWriter> = if options.json {
-        Box::new(json::JsonWriter::new(stdout))
+    if options.execute {
+        let result = query.execute(&mut connection).await?;
+        println!("{} row(s) affected", result.rows_affected());
     } else {
-        Box::new(csv::CsvWriter::new(stdout, !options.no_header))
-    };
+        let mut stream = query.fetch(&mut connection);
 
-    while let Some(result) = stream.next().await {
-        let row = result?;
-        writer.write(&row)?;
+        let stdout = io::stdout();
+        let stdout = stdout.lock();
+
+        let mut writer: Box<dyn RowWriter> = if options.json {
+            Box::new(json::JsonWriter::new(stdout))
+        } else {
+            Box::new(csv::CsvWriter::new(stdout, !options.no_header))
+        };
+
+        while let Some(result) = stream.next().await {
+            let row = result?;
+            writer.write(&row)?;
+        }
     }
 
     Ok(())
@@ -104,7 +110,7 @@ trait RowWriter {
 }
 
 fn is_query_destructive(query: &str) -> bool {
-    static REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\b(UPDATE|DELETE)\b").unwrap());
+    static REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?i)\b(UPDATE|DELETE)\b").unwrap());
 
     REGEX.is_match(query)
 }
