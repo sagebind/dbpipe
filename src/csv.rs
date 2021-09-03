@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
-use sqlx::{Column, Row, TypeInfo, any::AnyRow};
+use chrono::NaiveDateTime;
+use sqlx::{any::AnyRow, Column, Row, TypeInfo, ValueRef};
 
 use super::RowWriter;
 
@@ -24,7 +25,9 @@ impl<W: Write> CsvWriter<W> {
             self.writer.write_all(b",")?;
         }
 
-        let needs_quoted = data.iter().any(|&byte| byte == b'"' || byte == b',' || byte == b'\n');
+        let needs_quoted = data
+            .iter()
+            .any(|&byte| byte == b'"' || byte == b',' || byte == b'\n');
 
         if needs_quoted {
             self.writer.write_all(b"\"")?;
@@ -80,9 +83,7 @@ impl<W: Write> RowWriter for CsvWriter<W> {
 }
 
 fn get_str(row: &AnyRow, index: usize) -> Option<String> {
-    let type_info = row.column(index).type_info();
-
-    if type_info.is_null() {
+    if row.try_get_raw(index).unwrap().is_null() {
         None
     } else {
         Some(match row.column(index).type_info().name() {
@@ -90,6 +91,7 @@ fn get_str(row: &AnyRow, index: usize) -> Option<String> {
             s if s.contains("INT") => row.get::<i64, _>(index).to_string(),
             "FLOAT" => row.get::<f32, _>(index).to_string(),
             "DOUBLE" => row.get::<f64, _>(index).to_string(),
+            "DATETIME" => row.get::<NaiveDateTime, _>(index).to_string(),
             _ => row.get(index),
         })
     }

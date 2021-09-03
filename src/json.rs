@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
-use sqlx::{Column, Row, TypeInfo, any::AnyRow};
+use chrono::NaiveDateTime;
+use sqlx::{any::AnyRow, Column, Row, TypeInfo, ValueRef};
 
 use super::RowWriter;
 
@@ -10,9 +11,7 @@ pub struct JsonWriter<W> {
 
 impl<W: Write> JsonWriter<W> {
     pub fn new(writer: W) -> Self {
-        Self {
-            writer,
-        }
+        Self { writer }
     }
 
     fn write_string(&mut self, string: &str) -> io::Result<()> {
@@ -52,7 +51,7 @@ impl<W: Write> RowWriter for JsonWriter<W> {
             self.write_string(column.name())?;
             self.writer.write(b":")?;
 
-            if column.type_info().is_null() {
+            if row.try_get_raw(i).unwrap().is_null() {
                 self.writer.write_all(b"null")?;
             } else {
                 match column.type_info().name() {
@@ -60,7 +59,13 @@ impl<W: Write> RowWriter for JsonWriter<W> {
                     s if s.contains("INT") => write!(&mut self.writer, "{}", row.get::<i64, _>(i))?,
                     "FLOAT" => write!(&mut self.writer, "{}", row.get::<f32, _>(i))?,
                     "DOUBLE" => write!(&mut self.writer, "{}", row.get::<f64, _>(i))?,
-                    _ => self.write_string(row.get::<String, _>(i).as_str())?,
+                    "CHAR" | "VARCHAR" | "TEXT" | "LONGTEXT" => {
+                        self.write_string(row.get::<String, _>(i).as_str())?
+                    }
+                    "DATETIME" => {
+                        self.write_string(row.get::<NaiveDateTime, _>(i).to_string().as_str())?
+                    }
+                    _ => self.writer.write_all(b"null")?,
                 }
             }
         }

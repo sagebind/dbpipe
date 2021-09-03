@@ -192,6 +192,7 @@ name = "dbpipe"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "log",
  "once_cell",
  "regex",
@@ -970,6 +971,7 @@ dependencies = [
  "bitflags",
  "byteorder",
  "bytes",
+ "chrono",
  "crossbeam-channel",
  "crossbeam-queue",
  "crossbeam-utils",
