@@ -10,13 +10,18 @@ jobs:
   linux-x86_64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           default: true
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libssl-dev
 
       - name: Build binary
         uses: actions-rs/cargo@v1
@@ -45,7 +50,7 @@ jobs:
   macos-x86_64:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -81,7 +86,7 @@ jobs:
   windows-x86_64:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
         with:
