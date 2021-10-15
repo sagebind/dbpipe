@@ -22,12 +22,12 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target x86_64-unknown-linux-musl
+          args: --release
           use-cross: true
 
       - name: Optimize and package binary
         run: |
-          cd target/x86_64-unknown-linux-musl/release
+          cd target/release
           strip $BINARY_NAME
           chmod +x $BINARY_NAME
           tar -c $BINARY_NAME | gzip > $BINARY_NAME.tar.gz
@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           asset_name: ${{ env.BINARY_NAME }}-${{ github.event.release.tag_name }}-linux-x86_64.tar.gz
-          asset_path: target/x86_64-unknown-linux-musl/release/${{ env.BINARY_NAME }}.tar.gz
+          asset_path: target/release/${{ env.BINARY_NAME }}.tar.gz
           asset_content_type: application/octet-stream
           upload_url: ${{ github.event.release.upload_url }}
 
