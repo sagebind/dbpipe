@@ -18,17 +18,11 @@ jobs:
           toolchain: stable
           default: true
 
-      - name: Install build dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y libssl-dev
-
       - name: Build binary
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
-          use-cross: true
 
       - name: Optimize and package binary
         run: |
