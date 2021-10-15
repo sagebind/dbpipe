@@ -24,8 +24,23 @@ impl<W: Write> JsonWriter<W> {
                 '"' | '\\' => {
                     self.writer.write(&[b'\\', c as u8])?;
                 }
+                '\u{8}' => {
+                    self.writer.write(b"\\b")?;
+                }
+                '\u{C}' => {
+                    self.writer.write(b"\\f")?;
+                }
+                '\n' => {
+                    self.writer.write(b"\\n")?;
+                }
+                '\r' => {
+                    self.writer.write(b"\\r")?;
+                }
+                '\t' => {
+                    self.writer.write(b"\\t")?;
+                }
                 c if c.is_control() => {
-                    write!(&mut self.writer, "{}", c.escape_default())?;
+                    write!(&mut self.writer, "\\u{:04x}", c as u32)?;
                 }
                 c => {
                     self.writer.write(c.encode_utf8(&mut char_buf).as_bytes())?;
